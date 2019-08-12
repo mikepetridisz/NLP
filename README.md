@@ -8,9 +8,6 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
  - PyCharm IDE
  - Data processing == Apache Spark
 
-**Hacker News:**
-[https://news.ycombinator.com/](https://news.ycombinator.com/)
-
 **Packages/Modules Used:**
 argparse, re, urllib, contextlib, closing, math, ceil
 itertools, chain, groupby, pandas, validators, bs4, nltk.corpus, stopwords
