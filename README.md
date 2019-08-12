@@ -11,5 +11,10 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
 **Hacker News:**
 [https://news.ycombinator.com/](https://news.ycombinator.com/)
 
+**Packages/Modules Used:**
+argparse, re, urllib, contextlib, closing, math, ceil
+itertools, chain, groupby, pandas, validators, bs4, nltk.corpus, stopwords
+requests, get, RequestException, findspark, summa, nltk,
+PorterStemmer, WordNetLemmatizer, SparkContext, SparkSession
 
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
