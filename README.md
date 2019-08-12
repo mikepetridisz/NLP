@@ -12,3 +12,4 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
 [https://news.ycombinator.com/](https://news.ycombinator.com/)
 
 
+<img src="hhttps://drive.google.com/file/d/1tbtqUAovj2jfl_jRGW3-EULMdFymeSaw/view?usp=sharing)" width="100" height="100"/>
