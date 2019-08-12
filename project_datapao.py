@@ -3,7 +3,6 @@
 import argparse
 import re
 import urllib
-# import urllib.request
 from contextlib import closing
 from math import ceil
 from itertools import chain, groupby
@@ -16,20 +15,21 @@ from requests import get
 from requests.exceptions import RequestException
 import findspark
 findspark.init()
-from collections import OrderedDict
 from summa import keywords
 import nltk
+from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
 from pyspark.context import SparkContext
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql.session import SparkSession
+
 sc = SparkContext('local')
 spark = SparkSession(sc)
 
-
 MAX_NUM_POSTS = 100
 
+
 class HackerNewsScraper:
-    
     URL = 'https://news.ycombinator.com/news'
 
     def __init__(self, posts):
@@ -42,9 +42,9 @@ class HackerNewsScraper:
         Default 30 stories / page. This ensures enough HTML data (pages) are fetched.
         """
         page = 1
-        
+
         # Visit sufficient number of pages
-        while page <= self._total_pages:  
+        while page <= self._total_pages:
             url = '{}?p={}'.format(self.URL, page)
 
             html = get_html(url)
@@ -53,12 +53,12 @@ class HackerNewsScraper:
 
     def parse_stories(self, html):
         """
-        Beautifulsoup nested data structure 
-        -> parse_stories(html) parses the data and selects the following fields: 
+        Beautifulsoup nested data structure
+        -> parse_stories(html) parses the data and selects the following fields:
         title, url as uri, author, comments, points, rank and keywords.
         Saves the data in dictionary form in self._stories.
         """
-        
+
         for storytext, subtext in zip(html.find_all('tr', {'class': 'athing'}),
                                       html.find_all('td', {'class': 'subtext'})):
 
@@ -99,14 +99,21 @@ class HackerNewsScraper:
             # Lower-case characters only
             fulltext = fulltext.lower()
             # Regex
-            document = re.sub("<!--?.*?-->","",fulltext)
+            document = re.sub("<!--?.*?-->", "", fulltext)
             document = re.sub("(\\d|\\W)+", " ", fulltext)
-           # Text gets tokenized
+            # Text gets tokenized
             words = (nltk.wordpunct_tokenize(document))
-             # Stop words get taken out
+            # Stop words get taken out
             document = [w for w in words if w.lower() not in english_stopwords]
-            # Using summa package, selects keywords
-            kwords = keywords.keywords((str(document)), words = 10, ratio=0.2, language='english')
+            #Stemming
+            stemmer = PorterStemmer()
+            document = list(map(stemmer.stem, document))
+            #Lemmatizing
+            lemmatizer = WordNetLemmatizer()
+            document = ' '.join([lemmatizer.lemmatize(w) for w in document])
+            # Using summa package, selects keywords, change words to any number
+            # To get back the number of keywords wanted
+            kwords = keywords.keywords((str(document)), words=10, ratio=0.2, language='english')
             # Makes sure there are no duplicate words
             kwords = ' '.join(item[0] for item in groupby(kwords.split()))
 
@@ -136,11 +143,11 @@ class HackerNewsScraper:
         """
         Outputs the stories from list of dictionary format to pandas DataFrame
         """
-        
+
         pdf = pd.DataFrame(data=(self._stories),
                            columns=['title', 'uri', 'author', 'points', 'comments', 'rank', 'keywords'])
 
-        # Apache Spark schema 
+        # Apache Spark schema
         mySchema = StructType([
             StructField("title", StringType(), True),
             StructField("uri", StringType(), True),
@@ -210,7 +217,7 @@ def valid_author(author):
     Solved the issue of not finding an author by checking the fetched data with HN username rules.
     """
     # Hacker news username doesnt support whitespace
-    if author.find(' ') > -1: 
+    if author.find(' ') > -1:
         return False
     # Ensures that author is non empty string and <= 256 characters.
     return len(author) <= 256 and author
@@ -232,7 +239,7 @@ def validate_number(numString):
     Will strip any non digits from the input and return the first number.
     """
     # If not found, 'time since posted' would replace points for example
-    if numString.find('ago') > -1:  
+    if numString.find('ago') > -1:
         return 0
 
     digits = [int(s) for s in numString.split() if s.isdigit()]
@@ -284,7 +291,7 @@ def validate_input(arg, arg_max):
     if arg > arg_max:
         raise argparse.ArgumentTypeError(error_msg)
 
-        
+
 def parse_arguments():
     """
     Parses the argument input from the user. Modify default = x
@@ -298,12 +305,13 @@ def parse_arguments():
 
     return args.posts
 
-
     """ 
     Currently commented out this feature!
     Execution Scheduler, currenlty runs every 10 seconds,
     can be updated to anything.
     """
+
+
 '''
 def execution_scheduler():
     scheduler = BlockingScheduler()
