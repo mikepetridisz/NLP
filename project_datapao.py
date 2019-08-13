@@ -1,9 +1,10 @@
-""" DATAPAO PROJECT - HN """
+""" DATAPAO, PROJECT - HackerNews """
 
 import argparse
 import re
 from apscheduler.schedulers.blocking import BlockingScheduler
 import urllib
+import urllib.request
 from contextlib import closing
 from math import ceil
 from itertools import chain, groupby
@@ -105,14 +106,13 @@ class HackerNewsScraper:
             words = (nltk.wordpunct_tokenize(document))
             # Stop words get taken out
             document = [w for w in words if w.lower() not in english_stopwords]
-            #Stemming
+            # Stemming
             stemmer = PorterStemmer()
             document = list(map(stemmer.stem, document))
-            #Lemmatizing
+            # Lemmatizing
             lemmatizer = WordNetLemmatizer()
             document = ' '.join([lemmatizer.lemmatize(w) for w in document])
-            # Using summa package, selects keywords, change words to any number
-            # To get back the number of keywords wanted
+            # Selects keywords
             kwords = keywords.keywords((str(document)), words=10, ratio=0.2, language='english')
             # Makes sure there are no duplicate words
             kwords = ' '.join(item[0] for item in groupby(kwords.split()))
@@ -298,7 +298,7 @@ def parse_arguments():
     to scrape x number of stories. Max 100
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--posts', '-p', metavar='n', type=int, default=20, help='number of posts (max 100)')
+    parser.add_argument('--posts', '-p', metavar='n', type=int, default=10, help='number of posts (max 100)')
     args = parser.parse_args()
 
     validate_input(args.posts, MAX_NUM_POSTS)
@@ -308,12 +308,11 @@ def parse_arguments():
 
 def execution_scheduler():
     """
-    Re-runs the code every 10 seconds 
+    Re-runs the code every 10 seconds
     """
     scheduler = BlockingScheduler()
     scheduler.add_job(main, 'interval', seconds=10, max_instances=5)
     scheduler.start()
-
 
 
 def main():
