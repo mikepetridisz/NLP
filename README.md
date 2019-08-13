@@ -9,7 +9,4 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
  - Data processing == Apache Spark
  - Cloud (AWS), EC2, S3 (Done w/ AWS Toolkit for PyCharm, de az IDE-ben allitottam be es nem tudom megosztani)
 
-**Packages/Modules Used:**
-argparse, re, urllib, contextlib, math, itertools, chain, groupby, pandas, validators, bs4, bs4.element, nltk.corpus, requests, get, requests.exceptions , findspark, summa, nltk, nltk.stem, PorterStemmer, WordNetLemmatizer, SparkContext, SparkSession, apscheduler.schedulers.blocking
-
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
