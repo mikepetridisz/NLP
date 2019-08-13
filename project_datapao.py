@@ -1,7 +1,8 @@
-""" DATAPAO, PROJECT 1 - HackerNews """
+""" DATAPAO PROJECT - HN """
 
 import argparse
 import re
+from apscheduler.schedulers.blocking import BlockingScheduler
 import urllib
 from contextlib import closing
 from math import ceil
@@ -17,8 +18,7 @@ import findspark
 findspark.init()
 from summa import keywords
 import nltk
-from nltk.stem import PorterStemmer
-from nltk.stem import WordNetLemmatizer
+from nltk.stem import PorterStemmer, WordNetLemmatizer
 from pyspark.context import SparkContext
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 from pyspark.sql.session import SparkSession
@@ -298,26 +298,22 @@ def parse_arguments():
     to scrape x number of stories. Max 100
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--posts', '-p', metavar='n', type=int, default=1, help='number of posts (max 100)')
+    parser.add_argument('--posts', '-p', metavar='n', type=int, default=20, help='number of posts (max 100)')
     args = parser.parse_args()
 
     validate_input(args.posts, MAX_NUM_POSTS)
 
     return args.posts
 
-    """ 
-    Currently commented out this feature!
-    Execution Scheduler, currenlty runs every 10 seconds,
-    can be updated to anything.
-    """
 
-
-'''
 def execution_scheduler():
+    """
+    Re-runs the code every 10 seconds 
+    """
     scheduler = BlockingScheduler()
     scheduler.add_job(main, 'interval', seconds=10, max_instances=5)
     scheduler.start()
-'''
+
 
 
 def main():
@@ -329,9 +325,7 @@ def main():
         hnews_scraper = HackerNewsScraper(posts)
         hnews_scraper.scrape_stories()
         hnews_scraper.print_stories()
-        '''
         execution_scheduler()
-        '''
 
     except argparse.ArgumentTypeError as ex:
         log_error(ex)
