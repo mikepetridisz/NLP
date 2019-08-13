@@ -1,5 +1,5 @@
 ## Datapao
-Felteszem a vegleges verziot is hamarosan, de addig ha van barmi, amin javitanom kellene / plusz dolgokat hozzatennem nyugodtan szoljatok!:)
+Yet to be finished: Alerting
 #### Project Description:
 Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSoup nested data structure, parse the data and select the following fields: ***Title, URL, Author, Comments, Points, Rank***,  create columns based on these names and save the scraped data in a Spark DataFrame.  Scrape data from user-defined number of stories.  URLs posted by Hacker News users are pointing to different websites - scrape these websites' data, then create an additional column ***Keywords*** and implement Natural Language Procerssing to detect keywords from the text. Implement an execution scheduler that automatically re-runs the program. Create an alerting system, which alerts every time a "keyword" e.g "AI" gets more popular.
 
