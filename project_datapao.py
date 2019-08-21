@@ -105,7 +105,8 @@ class HackerNewsScraper:
             ''' 
             NLP implementation
             '''
-            # Scrapes the text
+            
+            # User Agent - Resolves the HTTP Error 403
             ua = UserAgent()
             req = urllib.request.Request(URI)
             req.add_header('User-Agent', ua.chrome)
