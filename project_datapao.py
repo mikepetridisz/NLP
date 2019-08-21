@@ -1,5 +1,5 @@
 """ Datapao Project"""
-
+# import boto3
 import argparse
 import re
 import urllib
@@ -34,6 +34,8 @@ from pyspark.sql.session import SparkSession
 
 sc = SparkContext('local')
 spark = SparkSession(sc)
+
+# s3 = boto3.resource('s3')
 
 MAX_NUM_POSTS = 100
 
