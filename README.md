@@ -7,6 +7,6 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
  - Written in Python 3.5 or 3.6
  - PyCharm IDE
  - Data processing == Apache Spark
- - Cloud (AWS), EC2, S3 (Done w/ AWS Toolkit for PyCharm, de az IDE-ben allitottam be es nem tudom megosztani)
+ - Cloud (AWS), EC2, S3 
 
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
