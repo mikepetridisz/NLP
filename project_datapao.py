@@ -1,13 +1,23 @@
-""" DATAPAO, PROJECT - HackerNews """
+""" Datapao Project"""
+
 
 import argparse
 import re
-from apscheduler.schedulers.blocking import BlockingScheduler
 import urllib
 import urllib.request
+import urllib.parse
+import urllib.error
+
+# https://news.ycombinator.com/robots.txt | Crawl Delay: 30 | Robots.txt 
+from time import sleep
+
+from urllib.error import  URLError
+import urllib.request
 from contextlib import closing
+from itertools import groupby
 from math import ceil
-from itertools import chain, groupby
+from fake_useragent import UserAgent
+import findspark
 import pandas as pd
 import validators
 from bs4 import BeautifulSoup
@@ -15,7 +25,6 @@ from bs4.element import Comment
 from nltk.corpus import stopwords
 from requests import get
 from requests.exceptions import RequestException
-import findspark
 findspark.init()
 from summa import keywords
 import nltk
@@ -31,11 +40,16 @@ MAX_NUM_POSTS = 100
 
 
 class HackerNewsScraper:
+    # Global variable
     URL = 'https://news.ycombinator.com/news'
-
+    # To automatically set these variables I used __init__ self
+    # Self takes the instance, posts -> argument
     def __init__(self, posts):
         self._total_posts = posts
-        self._total_pages = int(ceil(posts / 30))
+
+        # If we want to scrape e.g 60 stories, then 60/30 = 2 => 2 pages will be scraped.
+        self._total_pages = int(ceil(posts / 30))  # ceil == 46,47 ..59, 60 is still on page 2.
+        # empty list creation
         self._stories = []
 
     def scrape_stories(self):
@@ -46,11 +60,11 @@ class HackerNewsScraper:
 
         # Visit sufficient number of pages
         while page <= self._total_pages:
-            url = '{}?p={}'.format(self.URL, page)
-
+            url = '{}?p={}'.format(self.URL, page)  # str.format() https://news.ycombinator.com/?p=1/2/3/4/5/etc..
             html = get_html(url)
             self.parse_stories(html)
             page += 1
+
 
     def parse_stories(self, html):
         """
@@ -93,8 +107,33 @@ class HackerNewsScraper:
             NLP implementation
             '''
             # Scrapes the text
-            html = urllib.request.urlopen(URI).read()
-            fulltext = (text_from_html(html))
+            ua = UserAgent()
+            req = urllib.request.Request(URI)
+            req.add_header('User-Agent', ua.chrome)
+            html = urllib.request.urlopen(req).read()
+
+            #User Agents
+            '''
+            hdr = {
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+                'Accept-Encoding': 'none',
+                'Accept-Language': 'en-US,en;q=0.8',
+                'Connection': 'keep-alive'}
+            '''
+
+            try:
+                html = urllib.request.urlopen(req).read()
+            except URLError as e:
+                if hasattr(e, 'reason'):
+                    print('We failed to reach a server.')
+                    print('Reason: ', e.reason)
+                elif hasattr(e, 'code'):
+                    print('The server couldn\'t fulfill the request.')
+                    print('Error code: ', e.code)
+            else:
+                fulltext = (text_from_html(html))
             # English stop words implementation
             english_stopwords = stopwords.words('english')
             # Lower-case characters only
@@ -113,7 +152,7 @@ class HackerNewsScraper:
             lemmatizer = WordNetLemmatizer()
             document = ' '.join([lemmatizer.lemmatize(w) for w in document])
             # Selects keywords
-            kwords = keywords.keywords((str(document)), words=10, ratio=0.2, language='english')
+            kwords = keywords.keywords((str(document)), words=(5), ratio=0.2, language='english')
             # Makes sure there are no duplicate words
             kwords = ' '.join(item[0] for item in groupby(kwords.split()))
 
@@ -161,13 +200,8 @@ class HackerNewsScraper:
         df = spark.createDataFrame(pdf, schema=mySchema)
         # If True -> no abbreviation, if false -> Abbreviates DataFrame
         df.show(100, False)
-
-    def get_stories(self):
-        """
-        Returns the scraped stories to the user in a list of dictionary format.
-        For testing purposes.
-        """
-        return self._stories
+        # Storage - CSV (data is relatively small, it can be JSON/Parquet etc as well)
+        ''' df.repartition(1).write.format("com.databricks.spark.csv").option("header", "True").save("mydata.csv") '''
 
 
 def get_html(url):
@@ -179,7 +213,7 @@ def get_html(url):
     if response is not None:
         html = BeautifulSoup(response, 'html.parser')
 
-    return html
+        return html
 
 
 def validate_story(story):
@@ -250,11 +284,14 @@ def validate_number(numString):
 
 
 def get_response(url):
-    """
-    Attempts to get the content at 'url' by making an HTTP GET request.
-    """
-    # If the content-type of response is HTML/XML -> text content
+
     try:
+        #  Contextlib [closing] closes thing upon completion of the block.
+        """
+           Attempts to get the content at `url` by making an HTTP GET request.
+           If the content-type of response is some kind of HTML/XML, return the
+           text content, otherwise return None
+        """
         with closing(get(url, stream=True)) as resp:
             if is_good_response(resp):
                 return resp.content
@@ -262,6 +299,7 @@ def get_response(url):
                 return None
 
     except RequestException as e:
+        #  In Python 3.x str(e) should be able to convert any Exception to a string, even if it contains Unicode characters.
         log_error('Error during requests to {0} : {1}'.format(url, str(e)))
         return None
 
@@ -298,34 +336,38 @@ def parse_arguments():
     to scrape x number of stories. Max 100
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--posts', '-p', metavar='n', type=int, default=10, help='number of posts (max 100)')
+    parser.add_argument('--posts', '-p', metavar='n', type=int, default=2, help='number of posts (max 100)')
     args = parser.parse_args()
 
     validate_input(args.posts, MAX_NUM_POSTS)
 
     return args.posts
 
-
+# Execution Scheduler, to execute code time to time (user-defined)
+'''
 def execution_scheduler():
     """
     Re-runs the code every 10 seconds
     """
-    scheduler = BlockingScheduler()
+    schedulerl= BlockingSchedulem(k
     scheduler.add_job(main, 'interval', seconds=10, max_instances=5)
     scheduler.start()
-
+'''
 
 def main():
     """
     If user input is valid, will create a scraper and fetch requests number of posts and print them out.
     """
+    # Executes code following the try statement as a “normal” part of the program
     try:
         posts = parse_arguments()
         hnews_scraper = HackerNewsScraper(posts)
         hnews_scraper.scrape_stories()
         hnews_scraper.print_stories()
-        execution_scheduler()
+        # Commented out the execution schedculer due to the HTTP Error 403
+        ''' execution_scheduler() '''
 
+    # the program 's response to any exceptions in the preceding try clause.
     except argparse.ArgumentTypeError as ex:
         log_error(ex)
 
