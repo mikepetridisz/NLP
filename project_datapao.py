@@ -16,6 +16,7 @@ from io import StringIO
 from pyspark import SparkFiles
 
 # https://news.ycombinator.com/robots.txt | Crawl Delay: 30 | Robots.txt
+# In case HTTP Error 403 still comes up even after the below implemented User Agents, this solves the issue.
 from time import sleep
 
 from urllib.error import URLError
