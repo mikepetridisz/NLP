@@ -7,6 +7,6 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
  - ***Currently in Python 3.7***, will make sure to make a 3.5 version as well.
  - ***PyCharm IDE***
  - ***Apache Spark***
- - ***Cloud (AWS):***  Streams/writes the DataFrame directly to the S3 bucket without having to save the CSV  to local disk. 
+ - ***Cloud (AWS):***  Streams/writes the DataFrame directly to the defined S3 bucket without having to save the CSV  to local disk. 
 
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
