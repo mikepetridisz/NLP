@@ -217,8 +217,8 @@ class HackerNewsScraper:
         
         '''
         Found a way to stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
-        This way, as the execution scheduler re-executes the code, a new file gets uploaded to S3 automatically.
         '''
+        
         df = io.StringIO()
         with smart_open.smart_open('s3://hackernews-project/dpao/foo.csv', 'wb') as fout:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
