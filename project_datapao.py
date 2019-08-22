@@ -1,22 +1,30 @@
 """ Datapao Project"""
-# import boto3
+
+import boto3
+import findspark
+findspark.init()
+import smart_open
+import io
+import csv
 import argparse
 import re
 import urllib
 import urllib.request
 import urllib.parse
 import urllib.error
+from io import StringIO
+from pyspark import SparkFiles
 
-# https://news.ycombinator.com/robots.txt | Crawl Delay: 30 | Robots.txt 
+# https://news.ycombinator.com/robots.txt | Crawl Delay: 30 | Robots.txt
 from time import sleep
 
-from urllib.error import  URLError
+from urllib.error import URLError
+import os
 import urllib.request
 from contextlib import closing
 from itertools import groupby
 from math import ceil
 from fake_useragent import UserAgent
-import findspark
 import pandas as pd
 import validators
 from bs4 import BeautifulSoup
@@ -24,7 +32,6 @@ from bs4.element import Comment
 from nltk.corpus import stopwords
 from requests import get
 from requests.exceptions import RequestException
-findspark.init()
 from summa import keywords
 import nltk
 from nltk.stem import PorterStemmer, WordNetLemmatizer
@@ -35,7 +42,6 @@ from pyspark.sql.session import SparkSession
 sc = SparkContext('local')
 spark = SparkSession(sc)
 
-# s3 = boto3.resource('s3')
 
 MAX_NUM_POSTS = 100
 
@@ -43,6 +49,7 @@ MAX_NUM_POSTS = 100
 class HackerNewsScraper:
     # Global variable
     URL = 'https://news.ycombinator.com/news'
+
     # To automatically set these variables I used __init__ self
     # Self takes the instance, posts -> argument
     def __init__(self, posts):
@@ -65,7 +72,6 @@ class HackerNewsScraper:
             html = get_html(url)
             self.parse_stories(html)
             page += 1
-
 
     def parse_stories(self, html):
         """
@@ -107,14 +113,14 @@ class HackerNewsScraper:
             ''' 
             NLP implementation
             '''
-            
+
             # User Agent - Resolves the HTTP Error 403
             ua = UserAgent()
             req = urllib.request.Request(URI)
             req.add_header('User-Agent', ua.chrome)
             html = urllib.request.urlopen(req).read()
 
-            #User Agents
+            # Optional User Agents if the default fails
             '''
             hdr = {
                 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -160,6 +166,7 @@ class HackerNewsScraper:
 
             KEYWORDS = kwords
 
+
             story = {
                 'title': TITLE,
                 'uri': URI,
@@ -203,8 +210,28 @@ class HackerNewsScraper:
         # If True -> no abbreviation, if false -> Abbreviates DataFrame
         df.show(100, False)
         # Storage - CSV (data is relatively small, it can be JSON/Parquet etc as well)
-        ''' df.repartition(1).write.format("com.databricks.spark.csv").option("header", "True").save("mydata.csv") '''
 
+        #Save to S3
+        # df.write.option("header", True).csv("s3://hackernews-project/dpao/")
+        # df.repartition(1).write.mode("overwrite").format("csv").option("header", "true").csv("s3://hackernews-project/dpao.csv")
+        
+        '''
+        Found a way to stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
+        This way, as the execution scheduler re-executes the code, a new file gets uploaded to S3 automatically.
+        '''
+        df = io.StringIO()
+        with smart_open.smart_open('s3://hackernews-project/dpao/foo.csv', 'wb') as fout:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            fout.write(f.getvalue())
+
+            for row in df:
+                f.seek(0)
+                f.truncate(0)
+                writer.writerow(row)
+                fout.write(f.getvalue())
+        f.close()
+        
 
 def get_html(url):
     """
@@ -286,7 +313,6 @@ def validate_number(numString):
 
 
 def get_response(url):
-
     try:
         #  Contextlib [closing] closes thing upon completion of the block.
         """
@@ -338,12 +364,13 @@ def parse_arguments():
     to scrape x number of stories. Max 100
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--posts', '-p', metavar='n', type=int, default=2, help='number of posts (max 100)')
+    parser.add_argument('--posts', '-p', metavar='n', type=int, default=1, help='number of posts (max 100)')
     args = parser.parse_args()
 
     validate_input(args.posts, MAX_NUM_POSTS)
 
     return args.posts
+
 
 # Execution Scheduler, to execute code time to time (user-defined)
 '''
@@ -355,6 +382,7 @@ def execution_scheduler():
     scheduler.add_job(main, 'interval', seconds=10, max_instances=5)
     scheduler.start()
 '''
+
 
 def main():
     """
@@ -368,6 +396,8 @@ def main():
         hnews_scraper.print_stories()
         # Commented out the execution schedculer due to the HTTP Error 403
         ''' execution_scheduler() '''
+
+
 
     # the program 's response to any exceptions in the preceding try clause.
     except argparse.ArgumentTypeError as ex:
