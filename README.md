@@ -7,6 +7,6 @@ Build a [Hacker News](https://news.ycombinator.com) scraper. Given a BeautifulSo
  - Written in Python 3.5 or 3.6
  - PyCharm IDE
  - Data processing == Apache Spark
- - Cloud (AWS): Script first saved the data to disk and then uploaded it to S3. Unfortunately, was quite costly given the extra time spent waiting for the instance to first write to disk and then upload. I found a way to write/stream the DataFrame (now in a CSV format) directly to the S3 bucket without having to save it to local disk.
+ - Cloud (AWS): Script first saved the CSV to disk and then uploaded it to S3. Unfortunately, it was quite costly given the extra time spent waiting for the instance to first write to disk and then upload. I found a way to write/stream the DataFrame (now in a CSV format) directly to the S3 bucket without having to save it to local disk.
 
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
