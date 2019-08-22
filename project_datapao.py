@@ -110,10 +110,7 @@ class HackerNewsScraper:
                 texts = soup.findAll(text=True)
                 visible_texts = filter(tag_visible, texts)
                 return u" ".join(t.strip() for t in visible_texts)
-
-            ''' 
-            NLP implementation
-            '''
+            
 
             # User Agent - Resolves the HTTP Error 403
             ua = UserAgent()
@@ -143,6 +140,12 @@ class HackerNewsScraper:
                     print('Error code: ', e.code)
             else:
                 fulltext = (text_from_html(html))
+            
+            
+            ''' 
+            NLP implementation
+            '''
+            
             # English stop words implementation
             english_stopwords = stopwords.words('english')
             # Lower-case characters only
