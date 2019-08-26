@@ -222,7 +222,7 @@ class HackerNewsScraper:
         '''
         Found a way to stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
         '''
-        
+        """
         df = io.StringIO()
         with smart_open.smart_open('s3://hackernews-project/dpao/foo.csv', 'wb') as fout:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -235,6 +235,7 @@ class HackerNewsScraper:
                 writer.writerow(row)
                 fout.write(f.getvalue())
         f.close()
+        """
         
 
 def get_html(url):
