@@ -1,5 +1,3 @@
-""" Datapao Project"""
-
 import boto3
 import findspark
 findspark.init()
