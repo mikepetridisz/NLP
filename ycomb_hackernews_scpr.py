@@ -214,15 +214,15 @@ class HackerNewsScraper:
         # Storage - CSV (data is relatively small, it can be JSON/Parquet etc as well)
 
         #Save to S3
-        # df.write.option("header", True).csv("s3://hackernews-project/dpao/")
-        # df.repartition(1).write.mode("overwrite").format("csv").option("header", "true").csv("s3://hackernews-project/dpao.csv")
+        # df.write.option("header", True).csv("s3://herecomesthepath")
+        # df.repartition(1).write.mode("overwrite").format("csv").option("header", "true").csv("s3://herecomesthepath")
         
         '''
         Found a way to stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
         '''
         """
         df = io.StringIO()
-        with smart_open.smart_open('s3://hackernews-project/dpao/foo.csv', 'wb') as fout:
+        with smart_open.smart_open('s3://herecomesthepath', 'wb') as fout:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             fout.write(f.getvalue())
