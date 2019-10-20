@@ -5,6 +5,6 @@ Given a BeautifulSoup nested data structure, parses the data and selects the fol
 **Requirements:**
  - **Currently in Python 3.7**
  - **Apache Spark**
- - **Cloud (AWS):**  Streams/writes the DataFrame directly to your defined S3 bucket without having to save the CSV  to local disk. 
+ - **AWS**  Streams/writes the DataFrame directly to your defined S3 bucket without having to save the CSV  to local disk. 
 
 [![Screen-Shot-2019-08-13-at-1-40-30-AM.png](https://i.postimg.cc/d3L30qLW/Screen-Shot-2019-08-13-at-1-40-30-AM.png)](https://postimg.cc/MfJqPJ0R)
