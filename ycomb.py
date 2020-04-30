@@ -12,11 +12,7 @@ import urllib.parse
 import urllib.error
 from io import StringIO
 from pyspark import SparkFiles
-
-# https://news.ycombinator.com/robots.txt | Crawl Delay: 30 | Robots.txt
-# In case HTTP Error 403 still comes up even after the below implemented User Agents, this solves the issue.
 from time import sleep
-
 from urllib.error import URLError
 import os
 import urllib.request
@@ -46,17 +42,14 @@ MAX_NUM_POSTS = 100
 
 
 class HackerNewsScraper:
-    # Global variable
+    
     URL = 'https://news.ycombinator.com/news'
 
-    # To automatically set these variables I used __init__ self
-    # Self takes the instance, posts -> argument
     def __init__(self, posts):
         self._total_posts = posts
 
         # If we want to scrape e.g 60 stories, then 60/30 = 2 => 2 pages will be scraped.
-        self._total_pages = int(ceil(posts / 30))  # ceil == 46,47 ..59, 60 is still on page 2.
-        # empty list creation
+        self._total_pages = int(ceil(posts / 30))  
         self._stories = []
 
     def scrape_stories(self):
@@ -67,7 +60,7 @@ class HackerNewsScraper:
 
         # Visit sufficient number of pages
         while page <= self._total_pages:
-            url = '{}?p={}'.format(self.URL, page)  # str.format() https://news.ycombinator.com/?p=1/2/3/4/5/etc..
+            url = '{}?p={}'.format(self.URL, page)  
             html = get_html(url)
             self.parse_stories(html)
             page += 1
@@ -139,9 +132,8 @@ class HackerNewsScraper:
             else:
                 fulltext = (text_from_html(html))
             
-            
             ''' 
-            NLP implementation
+            NLP
             '''
             
             # English stop words implementation
@@ -179,13 +171,9 @@ class HackerNewsScraper:
                 'keywords': KEYWORDS
             }
 
-            # Make sure data meets requirements
             story = validate_story(story)
-
-            # self._stories is an array of dictionaries -> saves the requested number of stories
             self._stories.append(story)
 
-            # If required number of stories met -> stop parsing
             if len(self._stories) >= self._total_posts:
                 return
 
@@ -207,10 +195,10 @@ class HackerNewsScraper:
             StructField("rank", IntegerType(), True),
             StructField("keywords", StringType(), True)
         ])
-        # Based on the defined schema, converts pandas DataFrame to Spark DataFrame
+
         df = spark.createDataFrame(pdf, schema=mySchema)
-        # If True -> no abbreviation, if false -> Abbreviates DataFrame
         df.show(100, False)
+        
         # Storage - CSV (data is relatively small, it can be JSON/Parquet etc as well)
 
         #Save to S3
@@ -218,7 +206,7 @@ class HackerNewsScraper:
         # df.repartition(1).write.mode("overwrite").format("csv").option("header", "true").csv("s3://herecomesthepath")
         
         '''
-        Found a way to stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
+        stream/write directly to AWS S3 without having to save to disk plus automatized the upload.
         '''
         """
         df = io.StringIO()
@@ -317,7 +305,6 @@ def validate_number(numString):
 
 def get_response(url):
     try:
-        #  Contextlib [closing] closes thing upon completion of the block.
         """
            Attempts to get the content at `url` by making an HTTP GET request.
            If the content-type of response is some kind of HTML/XML, return the
@@ -330,7 +317,6 @@ def get_response(url):
                 return None
 
     except RequestException as e:
-        #  In Python 3.x str(e) should be able to convert any Exception to a string, even if it contains Unicode characters.
         log_error('Error during requests to {0} : {1}'.format(url, str(e)))
         return None
 
@@ -397,7 +383,7 @@ def main():
         hnews_scraper = HackerNewsScraper(posts)
         hnews_scraper.scrape_stories()
         hnews_scraper.print_stories()
-        # Commented out the execution schedculer due to the HTTP Error 403
+        # Commented out the execution schedculer due to HTTP Error 403
         ''' execution_scheduler() '''
 
 
