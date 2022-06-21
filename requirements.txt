@@ -23,7 +23,7 @@ keywords==0.0.1
 murmurhash==1.0.2
 networkx==2.3
 nltk>=3.4.5
-numpy==1.17.0
+numpy==1.22.0
 pandas==0.25.0
 plac==0.9.6
 preshed==2.0.1
